@@ -115,18 +115,17 @@ public class ApprovalServiceTests
     }
 
     [Fact]
-    public void Approve_Director_RejectsAboveLimit_WithoutChangingInvoice()
+    public void Approve_Director_AboveSoloLimit_RecordsFirstApprovalOnly()
     {
         var invoice = InvoiceWith("INV-1", InvoiceStatus.PendingApproval, ApprovalService.DirectorLimit + 0.01m);
         var service = ServiceFor(invoice);
 
-        var error = Assert.Throws<ArgumentException>(() =>
-            service.Approve("INV-1", "demo.director", "Director"));
+        var result = service.Approve("INV-1", "demo.director", "Director");
 
-        Assert.Contains("500,000", error.Message);
-        Assert.Equal(InvoiceStatus.PendingApproval, invoice.Status);
-        Assert.Null(invoice.DecidedBy);
-        Assert.Null(invoice.DecidedAt);
+        Assert.Equal(InvoiceStatus.PendingApproval, result.Status);
+        Assert.Equal("demo.director", result.FirstApprovedBy);
+        Assert.NotNull(result.FirstApprovedAt);
+        Assert.Null(result.DecidedBy);
     }
 
     [Fact]
@@ -138,5 +137,52 @@ public class ApprovalServiceTests
         Assert.Throws<ArgumentException>(() =>
             service.Approve("INV-1", "demo.approver", "Approver"));
         Assert.Equal(InvoiceStatus.PendingApproval, invoice.Status);
+    }
+
+    [Fact]
+    public void Approve_HighValue_SecondDirector_CompletesApproval()
+    {
+        var invoice = InvoiceWith("INV-HV", InvoiceStatus.PendingApproval, 600_000m);
+        var service = ServiceFor(invoice);
+
+        service.Approve("INV-HV", "demo.manager", "Manager");
+        var result = service.Approve("INV-HV", "demo.director", "Director");
+
+        Assert.Equal(InvoiceStatus.Approved, result.Status);
+        Assert.Equal("demo.manager", result.FirstApprovedBy);
+        Assert.Equal("demo.director", result.DecidedBy);
+    }
+
+    [Fact]
+    public void Approve_HighValue_SameUserCannotBeBothApprovers_WithoutChangingInvoice()
+    {
+        var invoice = InvoiceWith("INV-HV", InvoiceStatus.PendingApproval, 600_000m);
+        var service = ServiceFor(invoice);
+        service.Approve("INV-HV", "demo.director", "Director");
+
+        var error = Assert.Throws<ArgumentException>(() =>
+            service.Approve("INV-HV", "demo.director", "Director"));
+
+        Assert.Contains("same user", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(InvoiceStatus.PendingApproval, invoice.Status);
+        Assert.Equal("demo.director", invoice.FirstApprovedBy);
+        Assert.Null(invoice.DecidedBy);
+        Assert.Null(invoice.DecidedAt);
+    }
+
+    [Fact]
+    public void Approve_HighValue_SecondApproverMustBeDirector_WithoutChangingInvoice()
+    {
+        var invoice = InvoiceWith("INV-HV", InvoiceStatus.PendingApproval, 600_000m);
+        var service = ServiceFor(invoice);
+        service.Approve("INV-HV", "demo.director", "Director");
+
+        var error = Assert.Throws<ArgumentException>(() =>
+            service.Approve("INV-HV", "demo.manager", "Manager"));
+
+        Assert.Contains("second approver", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(InvoiceStatus.PendingApproval, invoice.Status);
+        Assert.Equal("demo.director", invoice.FirstApprovedBy);
+        Assert.Null(invoice.DecidedBy);
     }
 }

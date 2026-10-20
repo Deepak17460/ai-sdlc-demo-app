@@ -2,7 +2,7 @@ namespace InvoiceApp.Domain;
 
 /// <summary>
 /// Moves an invoice through its lifecycle: Draft -> PendingApproval -> Approved or Rejected.
-/// Enforces role-based solo approval limits (Manager / Director).
+/// Enforces role-based approval limits. Amounts above the director limit require two approvers.
 /// </summary>
 public class ApprovalService
 {
@@ -37,13 +37,15 @@ public class ApprovalService
         EnsurePending(invoice);
 
         var authority = ResolveAuthority(role);
+
+        if (invoice.Amount > DirectorLimit)
+        {
+            return ApproveHighValue(invoice, approver, authority);
+        }
+
         EnsureWithinSoloLimit(invoice, authority);
 
-        invoice.Status = InvoiceStatus.Approved;
-        invoice.DecidedBy = approver;
-        invoice.DecidedAt = DateTime.UtcNow;
-        _repository.Update(invoice);
-        return invoice;
+        return FinalizeApproval(invoice, approver);
     }
 
     public Invoice Reject(string invoiceId, string approver, string reason)
@@ -64,6 +66,37 @@ public class ApprovalService
         return invoice;
     }
 
+    private Invoice ApproveHighValue(Invoice invoice, string approver, ApprovalAuthority authority)
+    {
+        if (authority is not (ApprovalAuthority.Manager or ApprovalAuthority.Director))
+        {
+            throw new ArgumentException(
+                $"Role '{authority}' cannot approve invoices. Use Manager or Director.");
+        }
+
+        if (string.IsNullOrEmpty(invoice.FirstApprovedBy))
+        {
+            invoice.FirstApprovedBy = approver;
+            invoice.FirstApprovedAt = DateTime.UtcNow;
+            _repository.Update(invoice);
+            return invoice;
+        }
+
+        if (string.Equals(invoice.FirstApprovedBy, approver, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                $"The same user may not act as both approvers. '{approver}' already approved invoice {invoice.Id}.");
+        }
+
+        if (authority != ApprovalAuthority.Director)
+        {
+            throw new ArgumentException(
+                $"The second approver on invoices above {DirectorLimit:N0} must be a Director.");
+        }
+
+        return FinalizeApproval(invoice, approver);
+    }
+
     private static void EnsureWithinSoloLimit(Invoice invoice, ApprovalAuthority authority)
     {
         var limit = authority switch
@@ -78,6 +111,15 @@ public class ApprovalService
             throw new ArgumentException(
                 $"A {authority} may not approve invoices above {limit:N0}. Invoice {invoice.Id} is for {invoice.Amount:N2}.");
         }
+    }
+
+    private Invoice FinalizeApproval(Invoice invoice, string approver)
+    {
+        invoice.Status = InvoiceStatus.Approved;
+        invoice.DecidedBy = approver;
+        invoice.DecidedAt = DateTime.UtcNow;
+        _repository.Update(invoice);
+        return invoice;
     }
 
     private static ApprovalAuthority ResolveAuthority(string role)
