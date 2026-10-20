@@ -1,0 +1,72 @@
+# AI-in-SDLC demo — copy/paste commands (one by one)
+# Run these from WSL unless noted. Repo root:
+#   /mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app
+
+# ---------------------------------------------------------------------------
+# 0) Go to the project
+# ---------------------------------------------------------------------------
+cd "/mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app"
+
+# ---------------------------------------------------------------------------
+# 1) Start the app (UI) — leave this terminal open
+#    Then open browser: http://localhost:5000
+# ---------------------------------------------------------------------------
+dotnet run --project backend/src/InvoiceApp.Api --urls http://0.0.0.0:5000
+
+# Manual UI checks (in the browser):
+#   Manager OK:     demo.manager  / ChangeMe123!  → create 50000 → Submit → Approvals → Approve
+#   Manager fail:   same user → create 50000.01 → Submit → Approve → expect error, stays Pending
+#   Dual approve:   create 600000 as manager → Approve (pending + first note)
+#                   Sign out → demo.director2 / ChangeMe123! → Approve → Approved
+# Stop the app with Ctrl+C before the next section (or use a second WSL terminal).
+
+# ---------------------------------------------------------------------------
+# 2) Unit tests (live on screen)
+# ---------------------------------------------------------------------------
+cd "/mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app"
+dotnet test backend/InvoiceApp.sln
+
+# Expect: total 15, failed 0
+
+# ---------------------------------------------------------------------------
+# 3) Playwright e2e
+#     Prefer OPTION A if WSL Chromium install is slow/fails.
+# ---------------------------------------------------------------------------
+
+# OPTION A — Windows PowerShell / CMD (Chromium already downloaded there earlier)
+# cd /d "C:\Users\dekuma\OneDrive - ASSA ABLOY Group\Desktop\AlgoMaster\NAGPOps\Assignements\AI_SDLC\ai-sdlc-demo-app\e2e"
+# npm test
+
+# OPTION B — WSL (needs Linux Chromium once)
+cd "/mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app/e2e"
+npm install
+npx playwright install chromium
+# if the next line asks for a password, enter your WSL sudo password:
+sudo npx playwright install-deps chromium
+npm test
+
+# Expect: 1 passed (manager over-limit rejected in UI)
+# Your earlier failure was only: browser not installed in WSL (~/.cache/ms-playwright/...)
+
+# ---------------------------------------------------------------------------
+# 4) Mutation testing (Stryker) — show the score live
+# ---------------------------------------------------------------------------
+cd "/mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app/backend"
+export PATH="$PATH:$HOME/.dotnet/tools"
+./run-stryker.sh
+
+# Expect roughly: Killed 35, Survived 11, score 71.43 %
+# Say on video: before (lifecycle-only tests) was 24.49 %, after full suite is 71.43 %
+
+# Optional: open the HTML report in Windows browser
+#   explorer.exe StrykerOutput
+
+# ---------------------------------------------------------------------------
+# 5) Quick evidence files (do NOT only read files — keep this short)
+# ---------------------------------------------------------------------------
+cd "/mnt/c/Users/dekuma/OneDrive - ASSA ABLOY Group/Desktop/AlgoMaster/NAGPOps/Assignements/AI_SDLC/ai-sdlc-demo-app"
+ls AGENTS.md ASSIGNMENT.md AI_INTERACTION_LOG.md
+ls openspec/changes/add-approval-limits-by-role/
+ls .cursor/skills .cursor/hooks .cursor/agents
+
+# Point to ASSIGNMENT.md review verdicts and mutation table while speaking.
