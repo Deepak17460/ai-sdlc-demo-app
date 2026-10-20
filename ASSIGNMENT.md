@@ -49,9 +49,9 @@ cd backend && ./run-stryker.sh   # needs: dotnet tool install -g dotnet-stryker 
 
 ## Demo video
 
-_Link to 8–10 minute MP4 (Teams recording or other):_ **TODO — upload and paste URL**
+Demo video (8–10 min): https://nagarro-my.sharepoint.com/:v:/p/deepak_kumar25/IQBbHU6PEhEGTKgidjd9h9K3AbJYKu88HneJ6TPtRinOJlU?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=VMmFyO
 
-Demo should show live: UI over-limit rejection, unit tests, mutation run, and the Playwright e2e test. Use `demo.txt` while recording.
+Demo shows live: UI over-limit rejection, unit tests, mutation run, and the Playwright e2e test.
 
 ## Agent review findings and verdicts
 
@@ -109,8 +109,8 @@ Demo should show live: UI over-limit rejection, unit tests, mutation run, and th
 | 6 | Mutation scores before/after | Done | table above |
 | 7 | PR description with finding verdicts | Done (paste) | `PR_DESCRIPTION.md` |
 | 8 | AI interaction log | Done | `AI_INTERACTION_LOG.md`, `.cursor/hooks/` |
-| 9 | ASSIGNMENT.md + video link | Write-up done; **video link TODO** | this file |
-| 10 | 8–10 min demo video | **TODO — record & link** | use `demo.txt` |
+| 9 | ASSIGNMENT.md + video link | Done | this file |
+| 10 | 8–10 min demo video | Done — linked above | SharePoint MP4 |
 
 ## Related
 

@@ -25,7 +25,7 @@ Adds role-based invoice approval limits to the demo app, implemented with OpenSp
 
 ## Demo video
 
-_TODO: paste MP4 / Teams recording link_
+https://nagarro-my.sharepoint.com/:v:/p/deepak_kumar25/IQBbHU6PEhEGTKgidjd9h9K3AbJYKu88HneJ6TPtRinOJlU?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=VMmFyO
 
 ## Agent review findings and verdicts
 
