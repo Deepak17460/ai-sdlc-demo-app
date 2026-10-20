@@ -2,10 +2,13 @@ namespace InvoiceApp.Domain;
 
 /// <summary>
 /// Moves an invoice through its lifecycle: Draft -> PendingApproval -> Approved or Rejected.
-/// One invoice at a time, decided as a whole by a single approver.
+/// Enforces role-based solo approval limits (Manager / Director).
 /// </summary>
 public class ApprovalService
 {
+    public const decimal ManagerLimit = 50_000m;
+    public const decimal DirectorLimit = 500_000m;
+
     private readonly IInvoiceRepository _repository;
 
     public ApprovalService(IInvoiceRepository repository)
@@ -28,10 +31,13 @@ public class ApprovalService
         return invoice;
     }
 
-    public Invoice Approve(string invoiceId, string approver)
+    public Invoice Approve(string invoiceId, string approver, string role)
     {
         var invoice = Find(invoiceId);
         EnsurePending(invoice);
+
+        var authority = ResolveAuthority(role);
+        EnsureWithinSoloLimit(invoice, authority);
 
         invoice.Status = InvoiceStatus.Approved;
         invoice.DecidedBy = approver;
@@ -58,6 +64,34 @@ public class ApprovalService
         return invoice;
     }
 
+    private static void EnsureWithinSoloLimit(Invoice invoice, ApprovalAuthority authority)
+    {
+        var limit = authority switch
+        {
+            ApprovalAuthority.Manager => ManagerLimit,
+            ApprovalAuthority.Director => DirectorLimit,
+            _ => 0m
+        };
+
+        if (invoice.Amount > limit)
+        {
+            throw new ArgumentException(
+                $"A {authority} may not approve invoices above {limit:N0}. Invoice {invoice.Id} is for {invoice.Amount:N2}.");
+        }
+    }
+
+    private static ApprovalAuthority ResolveAuthority(string role)
+    {
+        return role?.Trim() switch
+        {
+            "Manager" => ApprovalAuthority.Manager,
+            "Approver" => ApprovalAuthority.Manager,
+            "Director" => ApprovalAuthority.Director,
+            "Admin" => ApprovalAuthority.Director,
+            _ => throw new ArgumentException($"Unknown approval role '{role}'.")
+        };
+    }
+
     private Invoice Find(string invoiceId) =>
         _repository.GetById(invoiceId)
         ?? throw new KeyNotFoundException($"Invoice {invoiceId} was not found.");
@@ -69,5 +103,11 @@ public class ApprovalService
             throw new InvalidOperationException(
                 $"Invoice {invoice.Id} is {invoice.Status}; only pending invoices can be decided.");
         }
+    }
+
+    private enum ApprovalAuthority
+    {
+        Manager,
+        Director
     }
 }
