@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node .cursor/hooks/log-ai-interaction.js sessionStart"
+      }
+    ],
+    "afterAgentResponse": [
+      {
+        "command": "node .cursor/hooks/log-ai-interaction.js afterAgentResponse"
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "node .cursor/hooks/log-ai-interaction.js subagentStart"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/structured-stop.js"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+schema: spec-driven
+context: |
+  Invoice approval demo app (ASP.NET Core + static UI).
+  Business rules belong in InvoiceApp.Domain.ApprovalService.
+  Controllers map exceptions via ApiControllerBase.Handle.
+  Follow AGENTS.md for approval limits, tests, and review verdicts.
+rules:
+  proposal:
+    - Keep scope to role-based approval limits and dual approval above 500,000.
+  tasks:
+    - Split work into at least two implementation commits: single-approver limits, then dual-approver.
+    - Require unit tests for every rule, including negative cases.
+    - Require one Playwright test for a rejected over-limit approval.
