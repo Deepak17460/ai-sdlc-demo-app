@@ -101,7 +101,7 @@ Demo shows live: UI over-limit rejection, unit tests, mutation run, and the Play
 
 | # | Requirement | Status | Where |
 | --- | --- | --- | --- |
-| 1 | PR on fork, ≥ 3 standalone commits | Ready locally on `feature/approval-limits-by-role` — push/open PR on your fork | git + `PR_DESCRIPTION.md` |
+| 1 | PR on fork, ≥ 3 standalone commits | Done — [PR #1](https://github.com/Deepak17460/ai-sdlc-demo-app/pull/1) (6 commits) | git + `PR_DESCRIPTION.md` |
 | 2 | Updated AGENTS.md | Done | `AGENTS.md` |
 | 3 | Spec files (OpenSpec) | Done | `openspec/changes/add-approval-limits-by-role/` |
 | 4 | Unit tests for every rule (+ negatives) | Done | `backend/tests/InvoiceApp.Tests/ApprovalServiceTests.cs` |
